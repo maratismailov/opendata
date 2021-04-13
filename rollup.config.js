@@ -63,19 +63,11 @@ export default {
 			swDest: 'public/sw.js',
 			globDirectory: 'public/',
 			globPatterns: [
-				'**/*.{html,json,js,css}',
+				'**/*.{html,json,js,css, png, svg, ico}',
 			],
-			skipWaiting: true,
-			clientsClaim: true,
 			runtimeCaching: [{
 				urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
-				handler: 'CacheFirst',
-				options: {
-					cacheName: 'images',
-					expiration: {
-						maxEntries: 10,
-					},
-				},
+				handler: 'StaleWhileRevalidate',
 			}],
 		}),
 
