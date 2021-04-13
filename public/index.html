@@ -1,18 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset='utf-8'>
 	<meta name='viewport' content='width=device-width,initial-scale=1'>
 
-	<title>Svelte app</title>
+	<title>mobile survey</title>
 
-	<link rel='icon' type='image/png' href='/favicon.png'>
+	<link rel='icon' type='image/png' href='assets/favicon.png'>
 	<link rel='stylesheet' href='/global.css'>
 	<link rel='stylesheet' href='/build/bundle.css'>
 
+	<link rel="manifest" href="/manifest.json" />
+
 	<script defer src='/build/bundle.js'></script>
+	<script>
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register('sw.js');
+			});
+		}
+		self.addEventListener("activate", function (event) {
+			event.waitUntil(
+				caches.keys().then(function (cacheNames) {
+					return Promise.all(
+						cacheNames
+							.filter(function (cacheName) {
+								// Return true if you want to remove this cache,
+								// but remember that caches are shared across
+								// the whole origin
+							})
+							.map(function (cacheName) {
+								console.log(cacheName)
+								return caches.delete(cacheName);
+							})
+					);
+				})
+			);
+		});
+	</script>
 </head>
 
 <body>
 </body>
+
 </html>
