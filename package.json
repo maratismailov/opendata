@@ -20,6 +20,7 @@
   "dependencies": {
     "rollup-plugin-workbox": "^6.1.1",
     "sirv-cli": "^1.0.0",
+    "tinro": "^0.6.1",
     "workbox-window": "^6.1.5"
   }
 }
