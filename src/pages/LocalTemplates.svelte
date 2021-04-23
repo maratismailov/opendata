@@ -7,12 +7,9 @@
     let initial_fields;
     let initial_fields_values;
     let db;
+    let block_list;
 
-    onMount(async () => {
-        let server = url + `/get_templates_list`;
-        const res = await fetch(server);
-        const result = await res.json();
-        templates_list = JSON.parse(result);
+    onMount(() => {
         if (!("indexedDB" in window)) {
             console.log("This browser doesn't support IndexedDB");
             return;
@@ -20,6 +17,7 @@
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
+            get_blocks();
         };
         db_mobilesurvey.onerror = function (e) {
             console.log("onerror!");
@@ -57,7 +55,9 @@
             JSON.stringify(initial_fields_values);
         const res = await fetch(server);
         const result = await res.json();
-        let block_code = JSON.parse(result)[0].stand_code.toString().slice(0, -3)
+        let block_code = JSON.parse(result)[0]
+            .stand_code.toString()
+            .slice(0, -3);
         save_block(result, block_code);
         // initial_fields = JSON.parse(result).initial_fields;
         // initial_fields_values = initial_fields.map((elem) => {
@@ -66,44 +66,36 @@
         // });
         // console.log(initial_fields_values);
     };
-    const save_block = (block, block_code) => {
-        var transaction = db.transaction(["standestimation_templates"], "readwrite");
+    const get_blocks = () => {
+        var transaction = db.transaction(
+            ["standestimation_templates"],
+            "readonly"
+        );
         var store = transaction.objectStore("standestimation_templates");
-
-        var request = store.put(block, block_code);
+        var request = store.getAllKeys();
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
         };
-        request.onsuccess = function (e) {};
+        request.onsuccess = function (e) {
+            let list = e.target.result;
+            block_list = list.map((elem) => {
+                return JSON.parse(elem);
+            });
+            console.log(block_list);
+        };
     };
 </script>
 
 <div>
     <!-- {#if dictionary} -->
-    {#if templates_list}
-        {#each templates_list as template}
-            <div on:click={get_initial_fields(template.survey_id)}>
-                <div>
-                    {template.survey_id}
-                </div>
-                <div>
-                    {template.survey_name}
-                </div>
-                <hr />
+    {#if block_list}
+        {#each block_list as block}
+            <!-- <div on:click={get_initial_fields(template.survey_id)}> -->
+            <div>
+                {block}
             </div>
-            {#if initial_fields_values}
-                {#each initial_fields_values as field}
-                    <div>
-                        <div>{field.name}</div>
-                        <input bind:value={field.value} type="text" />
-                        <hr />
-                    </div>
-                {/each}
-                <button on:click={generate_survey(template.survey_id)}
-                    >{dictionary.generate_survey}</button
-                >
-            {/if}
+            <hr />
         {/each}
     {/if}
     <!-- {/if} -->

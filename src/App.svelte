@@ -1,22 +1,44 @@
 <script>
 	import { Route, active } from "tinro";
+	import { onMount } from "svelte";
 
 	import RemoteTemplates from "./pages/RemoteTemplates.svelte";
+	import LocalTemplates from "./pages/LocalTemplates.svelte";
+
+	let url;
+	let lng = 'ru';
+	let dictionary
+
+	if (location.hostname == "localhost") {
+		url = "http://192.168.20.35:8000";
+	} else {
+		url = "https://" + location.host + "/survey-editor";
+	}
+
+	onMount(async () => {
+    const res = await fetch(
+      "https://dev.forest.caiag.kg/" +
+        lng +
+        "/rent/taxdescr/getdictionarysurveyeditor"
+    );
+    dictionary = await res.json();
+  });
 </script>
 
 <div class="navbar">
 	<a href="/" use:active exact>
 		<img src="assets/icons/cloud.svg" alt="remote" /></a
 	>
-	<a href="/make" use:active exact
+	<a href="/local" use:active exact
 		><img src="assets/icons/prepare.svg" alt="prepare" /></a
 	>
-	<a href="/local" use:active exact
+	<a href="/make" use:active exact
 		><img src="assets/icons/forest.svg" alt="forest" /></a
 	>
 </div>
 
-<Route path="/"><RemoteTemplates /></Route>
+<Route path="/"><RemoteTemplates {url} {dictionary}/></Route>
+<Route path="/local"><LocalTemplates {url} {dictionary}/></Route>
 
 <style>
 	.navbar {
