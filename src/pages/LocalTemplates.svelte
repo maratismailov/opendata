@@ -35,37 +35,6 @@
             }
         };
     });
-    const get_initial_fields = async (id) => {
-        let server = url + `/get_initial_fields?id=` + id;
-        const res = await fetch(server);
-        const result = await res.json();
-        initial_fields = JSON.parse(result).initial_fields;
-        initial_fields_values = initial_fields.map((elem) => {
-            elem.value = "";
-            return elem;
-        });
-    };
-    const generate_survey = async (id) => {
-        console.log(initial_fields_values, id);
-        let server =
-            url +
-            `/generate_survey?id=` +
-            id +
-            "&values=" +
-            JSON.stringify(initial_fields_values);
-        const res = await fetch(server);
-        const result = await res.json();
-        let block_code = JSON.parse(result)[0]
-            .stand_code.toString()
-            .slice(0, -3);
-        save_block(result, block_code);
-        // initial_fields = JSON.parse(result).initial_fields;
-        // initial_fields_values = initial_fields.map((elem) => {
-        //     elem.value = "";
-        //     return elem;
-        // });
-        // console.log(initial_fields_values);
-    };
     const get_blocks = () => {
         var transaction = db.transaction(
             ["standestimation_templates"],
@@ -85,6 +54,26 @@
             console.log(block_list);
         };
     };
+    const show_blocks = block => {
+        var transaction = db.transaction(
+            ["standestimation_templates"],
+            "readonly"
+        );
+        var store = transaction.objectStore("standestimation_templates");
+        var request = store.get(block.toString());
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            let block = e.target.result;
+            block = JSON.parse(block)
+            // block_list = list.map((elem) => {
+            //     return JSON.parse(elem);
+            // });
+            console.log(block);
+        };
+    }
 </script>
 
 <div>
@@ -92,7 +81,7 @@
     {#if block_list}
         {#each block_list as block}
             <!-- <div on:click={get_initial_fields(template.survey_id)}> -->
-            <div>
+            <div on:click={show_blocks(block)}>
                 {block}
             </div>
             <hr />
