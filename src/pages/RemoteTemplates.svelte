@@ -7,6 +7,7 @@
     let initial_fields;
     let initial_fields_values;
     let db;
+    let object_code = ''
 
     onMount(async () => {
         let server = url + `/get_templates_list`;
@@ -27,9 +28,25 @@
         };
         db_mobilesurvey.onupgradeneeded = function (e) {
             db = e.target.result;
-            if (!db.objectStoreNames.contains("standestimation_templates")) {
-                var standestimation_templates = db.createObjectStore(
-                    "standestimation_templates",
+            if (!db.objectStoreNames.contains("templates")) {
+                var templates = db.createObjectStore(
+                    "templates",
+                    {
+                        autoIncrement: true,
+                    }
+                );
+            }
+            if (!db.objectStoreNames.contains("objects")) {
+                var objects = db.createObjectStore(
+                    "objects",
+                    {
+                        autoIncrement: true,
+                    }
+                );
+            }
+            if (!db.objectStoreNames.contains("complete_surveys")) {
+                var complete_surveys = db.createObjectStore(
+                    "complete_surveys",
                     {
                         autoIncrement: true,
                     }
@@ -48,17 +65,28 @@
         });
     };
     const generate_survey = async (id) => {
-        console.log(initial_fields_values, id);
+        initial_fields_values.map((elem) => {
+            object_code = object_code + elem.value + '-'
+        });
+        object_code = object_code.slice(0, -1)
         let server =
             url +
-            `/generate_survey?id=` +
+            `/generate_objects?id=` +
             id +
             "&values=" +
             JSON.stringify(initial_fields_values);
+        console.log('init ', initial_fields)
         const res = await fetch(server);
         const result = await res.json();
-        let block_code = JSON.parse(result)[0].stand_code.toString().slice(0, -3)
-        save_block(result, block_code);
+        save_objects(result, object_code);
+        let server2 =
+            url +
+            `/generate_survey?id=` +
+            id
+        const res2 = await fetch(server2);
+        const result2 = await res2.json();
+        const survey_name = JSON.parse(result2).survey_body.name
+        save_survey(result2, survey_name)
         // initial_fields = JSON.parse(result).initial_fields;
         // initial_fields_values = initial_fields.map((elem) => {
         //     elem.value = "";
@@ -66,11 +94,22 @@
         // });
         // console.log(initial_fields_values);
     };
-    const save_block = (block, block_code) => {
-        var transaction = db.transaction(["standestimation_templates"], "readwrite");
-        var store = transaction.objectStore("standestimation_templates");
+    const save_objects = (object, object_code) => {
+        var transaction = db.transaction(["objects"], "readwrite");
+        var store = transaction.objectStore("objects");
 
-        var request = store.put(block, block_code);
+        var request = store.put(object, object_code);
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {};
+    };
+    const save_survey = (survey, survey_name) => {
+        var transaction = db.transaction(["templates"], "readwrite");
+        var store = transaction.objectStore("templates");
+
+        var request = store.put(survey, survey_name);
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);

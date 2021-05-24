@@ -4,6 +4,7 @@
 
 	import RemoteTemplates from "./pages/RemoteTemplates.svelte";
 	import LocalTemplates from "./pages/LocalTemplates.svelte";
+	import CurrentTemplate from "./pages/CurrentTemplate.svelte";
 
 	let url;
 	let lng = 'ru';
@@ -32,13 +33,14 @@
 	<a href="/local" use:active exact
 		><img src="assets/icons/prepare.svg" alt="prepare" /></a
 	>
-	<a href="/make" use:active exact
+	<a href="/current" use:active exact
 		><img src="assets/icons/forest.svg" alt="forest" /></a
 	>
 </div>
 
 <Route path="/"><RemoteTemplates {url} {dictionary}/></Route>
 <Route path="/local"><LocalTemplates {url} {dictionary}/></Route>
+<Route path="/current"><CurrentTemplate {url} {dictionary}/></Route>
 
 <style>
 	.navbar {
