@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-import { select_value } from "svelte/internal";
+  import { select_value } from "svelte/internal";
 
   export let element;
 
@@ -20,19 +20,33 @@ import { select_value } from "svelte/internal";
   let selected;
   console.log("element ", element);
   const getIndex = (item) => {
-    console.log('item', item)
+    console.log("item", item);
     return item.findIndex((i) => i.id === 2);
   };
+  const get_index = (array, attr, value) => {
+    for(var i = 0; i < array.length; i += 1) {
+        if(array[i][attr] === value) {
+            return i;
+        }
+    }
+    return -1;
+}
 </script>
+
 {#if element.select_values}
-<input
-  bind:value={element.selected}
-  type="text"
-/>
+  <input bind:value={element.selected} type="text" />
 {/if}
-  {#each element.select_values as option}
+{#each element.select_values as option}
   {#if option.code == element.selected}
     <div>{option.name} {option.code}</div>
   {/if}
-  {/each}
+{/each}
+<!-- {#if element.select_values}
+<select bind:value={element.select_values[get_index(element.select_values, 'code', element.selected)]}>
+    {#each element.select_values as option}
+      <option>{option.name} {option.code}</option>
+    {/each}
+</select>
+{/if} -->
 <br />
+<!-- <button on:click={() => {console.log(get_index(element.select_values, 'code', element.selected))}}>test</button> -->
