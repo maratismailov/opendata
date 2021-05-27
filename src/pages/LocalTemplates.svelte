@@ -50,36 +50,24 @@
             });
         };
     };
-    const show_templates = (template) => {
+
+    const add_survey = (template_name) => {
+        console.log(template_name);
         var transaction = db.transaction(["templates"], "readonly");
         var store = transaction.objectStore("templates");
-        var request = store.get(template.toString());
+        var request = store.get(template_name.toString());
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
         };
         request.onsuccess = function (e) {
             let template = e.target.result;
-            template = JSON.parse(template);
-            // template_list = list.map((elem) => {
-            //     return JSON.parse(elem);
-            // });
-        };
-    };
-    const add_survey = (template) => {
-        var transaction = db.transaction(["templates"], "readonly");
-        var store = transaction.objectStore("templates");
-        var request = store.get(template.toString());
-
-        request.onerror = function (e) {
-            console.log("Error", e.target.error.name);
-        };
-        request.onsuccess = function (e) {
-            let template = e.target.result;
-            template = JSON.parse(template);
             console.log(template);
             store_current_template.set(template);
-            localStorage.setItem("current_template", JSON.stringify(template.survey_body));
+            localStorage.setItem(
+                "current_template",
+                JSON.stringify(template)
+            );
         };
         window.location.href = "/current";
     };
@@ -90,7 +78,7 @@
     {#if template_list}
         {#each template_list as template}
             <!-- <div on:click={get_initial_fields(template.survey_id)}> -->
-            <div on:click={show_templates(template)}>
+            <div>
                 <div>
                     {template}
                 </div>

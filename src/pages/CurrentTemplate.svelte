@@ -3,6 +3,8 @@
 
     import { store_current_template } from "../stores.js";
 
+    import Parsed from '../components/Parsed.svelte'
+
     export let url;
     export let dictionary;
     let template
@@ -35,8 +37,10 @@
 <div>
     <!-- {#if dictionary} -->
     {#if template}
-        {template.name}
+        {template.survey_name}
     {/if}
     <!-- {/if} -->
     <button on:click={() => {console.log(template)}}>test</button>
 </div>
+
+<Parsed template={template}/>
