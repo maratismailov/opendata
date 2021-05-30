@@ -10,8 +10,8 @@
 	let lng = 'ru';
 	let dictionary
 
-	if (location.hostname == "localhost" || location.hostname == "192.168.20.35") {
-		url = "http://192.168.20.35:8000";
+	if (location.hostname == "localhost" || location.hostname == "192.168.20.35" || location.hostname == "0.0.0.0") {
+		url = "http://0.0.0.0:8000";
 	} else {
 		url = "https://" + location.host + "/survey-editor";
 	}
