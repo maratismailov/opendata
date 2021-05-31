@@ -33,8 +33,8 @@
                     autoIncrement: true,
                 });
             }
-            if (!db.objectStoreNames.contains("objects")) {
-                var objects = db.createObjectStore("objects", {
+            if (!db.objectStoreNames.contains("mbtiles")) {
+                var mbtiles = db.createObjectStore("mbtiles", {
                     autoIncrement: true,
                 });
             }
@@ -70,6 +70,12 @@
             "&values=" +
             JSON.stringify(initial_fields_values);
         let server2 = url + `/generate_survey?id=` + id;
+        let mbtiles_url = url +
+            `/generate_mbtiles?id=` +
+            id +
+            "&values=" +
+            JSON.stringify(initial_fields_values);
+    
         const pre_objects = await fetch(server).then((response) =>
             response.json()
         );
@@ -81,8 +87,24 @@
         const survey_name = survey.survey_body.name + " " + object_code;
         survey.ojbects = objects;
         survey.survey_name = survey_name;
+        const mbitles = await fetch(mbtiles_url).then((response) =>
+            response.blob().then((blob) => save_mbtiles(blob, survey_name))
+        );
         save_survey(survey, survey_name);
     };
+
+    const save_mbtiles = (file, survey_name) => {
+        console.log(file)
+        var transaction = db.transaction(["mbtiles"], "readwrite");
+        var store = transaction.objectStore("mbtiles");
+
+        var request = store.put(file, survey_name);
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {};
+    }
 
     const save_survey = (survey, survey_name) => {
         var transaction = db.transaction(["templates"], "readwrite");

@@ -18,6 +18,8 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
+    "leaflet": "^1.7.1",
+    "Leaflet.TileLayer.MBTiles": "^1.0.0",
     "rollup-plugin-workbox": "^6.1.1",
     "sirv-cli": "^1.0.0",
     "tinro": "^0.6.1",
