@@ -7,23 +7,26 @@
 	import CurrentTemplate from "./pages/CurrentTemplate.svelte";
 
 	let url;
-	let lng = 'ru';
-	let dictionary
+	let lng = "ru";
+	let dictionary;
 
-	if (location.hostname == "localhost" || location.hostname == "192.168.20.35" || location.hostname == "0.0.0.0") {
+	if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
 		url = "http://0.0.0.0:8000";
+	} else if (location.hostname == "192.168.20.35") {
+		url = "http://192.168.20.35:8000"
 	} else {
-		url = "https://" + location.host + "/survey-editor";
+		url = "https://dev.forest.caiag.kg/survey-editor";
+		// url = "https://" + location.host + "/survey-editor";
 	}
 
 	onMount(async () => {
-    const res = await fetch(
-      "https://dev.forest.caiag.kg/" +
-        lng +
-        "/rent/taxdescr/getdictionarysurveyeditor"
-    );
-    dictionary = await res.json();
-  });
+		const res = await fetch(
+			"https://dev.forest.caiag.kg/" +
+				lng +
+				"/rent/taxdescr/getdictionarysurveyeditor"
+		);
+		dictionary = await res.json();
+	});
 </script>
 
 <div class="navbar">
@@ -38,9 +41,9 @@
 	>
 </div>
 
-<Route path="/"><RemoteTemplates {url} {dictionary}/></Route>
-<Route path="/local"><LocalTemplates {url} {dictionary}/></Route>
-<Route path="/current"><CurrentTemplate {url} {dictionary}/></Route>
+<Route path="/"><RemoteTemplates {url} {dictionary} /></Route>
+<Route path="/local"><LocalTemplates {url} {dictionary} /></Route>
+<Route path="/current"><CurrentTemplate {url} {dictionary} /></Route>
 
 <style>
 	.navbar {

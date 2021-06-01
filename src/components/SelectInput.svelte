@@ -18,9 +18,7 @@
   // });
 
   let selected;
-  console.log("element ", element);
   const getIndex = (item) => {
-    console.log("item", item);
     return item.findIndex((i) => i.id === 2);
   };
   const get_index = (array, attr, value) => {

@@ -17,9 +17,10 @@
     let map;
     let center;
     let zoom = 15;
+    let is_map = true;
+    let height = (window.innerHeight * 0.78).toString() + "px";
 
     onMount(() => {
-        console.log(template);
         if (!("indexedDB" in window)) {
             console.log("This browser doesn't support IndexedDB");
             return;
@@ -49,10 +50,9 @@
 
         transaction.objectStore("mbtiles").get(survey_name).onsuccess =
             function (event) {
+                // URL.revokeObjectURL(mbtiles);
                 var mbtiles = event.target.result;
                 map_url = URL.createObjectURL(mbtiles);
-                console.log("mapurl1 ", map_url);
-
                 createMap();
                 // URL.revokeObjectURL(imgURL);
             };
@@ -81,33 +81,79 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
-        console.log(template.center)
-        console.log("mapurl ", map_url);
-        map = L.map("map").setView(template.center, zoom)
+        let southWest = L.latLng(parseFloat(template.bounds[2])+0.01, parseFloat(template.bounds[0])),
+            northEast = L.latLng(parseFloat(template.bounds[3])+0.01, parseFloat(template.bounds[1])),
+            bounds = L.latLngBounds(southWest, northEast);
+        map = L.map("map").fitBounds(bounds);
+        console.log(bounds)
         L.tileLayer
             .mbTiles(map_url, {
                 attribution:
                     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             })
             .addTo(map);
+        is_map = false;
     };
+
+    const resize = () => {
+        height = (window.innerHeight * 0.78).toString() + "px";
+    };
+    // const show_map = () => {
+    //     is_map = true
+    //     map.setView(template.center, zoom);
+    //     // map.invalidateSize()
+    //     // resize()
+    // }
 </script>
 
-<div>
-    <!-- {#if dictionary} -->
-    {#if template}
-        {template.survey_name}
-    {/if}
-    <!-- {/if} -->
-    <button
-        on:click={() => {
-            console.log(template);
-        }}>test</button
-    >
+<svelte:window on:resize={resize} on:orientationchange={resize} />
+
+<ul id="menu">
+    <li>
+        <button
+            on:click|preventDefault={() => (is_map = false)}
+            class:selected={!is_map}>survey</button
+        >
+    </li>
+    |
+    <li>
+        <button
+            on:click|preventDefault={() => (is_map = true)}
+            class:selected={is_map}>map</button
+        >
+    </li>
+</ul>
+
+<div class:hidden={is_map}>
+    <div>
+        <!-- {#if dictionary} -->
+        {#if template}
+            {template.survey_name}
+        {/if}
+        <!-- {/if} -->
+        <button
+            on:click={() => {
+                console.log(template);
+            }}>test</button
+        >
+        <Parsed {template} />
+    </div>
+</div>
+<div class:hidden={!is_map}>
+    <div style="height: {height}" class="map" id="map">
+        <slot />
+    </div>
 </div>
 
-<Parsed {template} />
-
-<div style="height: 200px" class="map" id="map">
-    <slot />
-</div>
+<style>
+    .hidden {
+        display: none;
+    }
+    ul#menu li {
+        display: inline;
+    }
+    .selected {
+        background-color: orange;
+        color: white;
+    }
+</style>

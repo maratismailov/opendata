@@ -69,6 +69,8 @@ export default {
 				urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
 				handler: 'StaleWhileRevalidate',
 			}],
+			maximumFileSizeToCacheInBytes: 5000000,
+			navigateFallback: "index.html",
 		}),
 
 		// In dev mode, call `npm run start` once
