@@ -15,8 +15,8 @@
     let db;
     let map_url;
     let map;
-    let center = [41.4, 72.77];
-    let zoom = 6;
+    let center;
+    let zoom = 15;
 
     onMount(() => {
         console.log(template);
@@ -45,23 +45,35 @@
     });
 
     const get_mbtiles = (survey_name) => {
-        console.log(survey_name);
         var transaction = db.transaction(["mbtiles"], "readonly");
-        var store = transaction.objectStore("mbtiles");
-        // var request = store.get(template_name.toString());
-        var request = store.get(survey_name);
 
-        request.onerror = function (e) {
-            console.log("Error", e.target.error.name);
-        };
-        request.onsuccess = function (e) {
-            let blob = e.target.result;
-            map_url = URL.createObjectURL(blob);
-            map_url = map_url.substring(5);
-            // const str_arr = map_url.split("/")[3]
-            // map_url = 'http://localhost:5555/' + str_arr
-            createMap();
-        };
+        transaction.objectStore("mbtiles").get(survey_name).onsuccess =
+            function (event) {
+                var mbtiles = event.target.result;
+                map_url = URL.createObjectURL(mbtiles);
+                console.log("mapurl1 ", map_url);
+
+                createMap();
+                // URL.revokeObjectURL(imgURL);
+            };
+        // console.log(survey_name);
+        // var transaction = db.transaction(["mbtiles"], "readonly");
+        // var store = transaction.objectStore("mbtiles");
+        // // var request = store.get(template_name.toString());
+        // var request = store.get(survey_name);
+
+        // request.onerror = function (e) {
+        //     console.log("Error", e.target.error.name);
+        // };
+        // request.onsuccess = function (e) {
+        //     let blob = e.target.result;
+        //     map_url = window.URL.createObjectURL(blob);
+        //     // map_url = URL.createObjectURL(blob);
+        //     // map_url = map_url.substring(5);
+        //     // const str_arr = map_url.split("/")[3]
+        //     // map_url = 'http://localhost:5555/' + str_arr
+        //     createMap();
+        // };
     };
 
     // objectURL = URL.createObjectURL(blob);
@@ -69,9 +81,15 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
-        console.log('mapurl ', map_url)
-        map = L.map("map").setView(center, zoom);
-        var mb = L.tileLayer.mbTiles(map_url).addTo(map);
+        console.log(template.center)
+        console.log("mapurl ", map_url);
+        map = L.map("map").setView(template.center, zoom)
+        L.tileLayer
+            .mbTiles(map_url, {
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            })
+            .addTo(map);
     };
 </script>
 

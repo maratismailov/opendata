@@ -69,13 +69,19 @@
             id +
             "&values=" +
             JSON.stringify(initial_fields_values);
-        let server2 = url + `/generate_survey?id=` + id;
-        let mbtiles_url = url +
+        let server2 =
+            url +
+            `/generate_survey?id=` +
+            id +
+            "&values=" +
+            JSON.stringify(initial_fields_values);
+        let mbtiles_url =
+            url +
             `/generate_mbtiles?id=` +
             id +
             "&values=" +
             JSON.stringify(initial_fields_values);
-    
+
         const pre_objects = await fetch(server).then((response) =>
             response.json()
         );
@@ -94,7 +100,7 @@
     };
 
     const save_mbtiles = (file, survey_name) => {
-        console.log(file)
+        console.log(file);
         var transaction = db.transaction(["mbtiles"], "readwrite");
         var store = transaction.objectStore("mbtiles");
 
@@ -104,7 +110,7 @@
             console.log("Error", e.target.error.name);
         };
         request.onsuccess = function (e) {};
-    }
+    };
 
     const save_survey = (survey, survey_name) => {
         var transaction = db.transaction(["templates"], "readwrite");

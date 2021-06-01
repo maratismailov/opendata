@@ -63,7 +63,7 @@ export default {
 			swDest: 'public/sw.js',
 			globDirectory: 'public/',
 			globPatterns: [
-				'**/*.{html,json,js,css, png, svg, ico}',
+				'**/*.{html,json,js,css,png,svg,ico}',
 			],
 			runtimeCaching: [{
 				urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
