@@ -21,6 +21,24 @@
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
+            // if (!db.objectStoreNames.contains("templates")) {
+            //     var templates = db.createObjectStore("templates", {
+            //         autoIncrement: true,
+            //     });
+            // }
+            // if (!db.objectStoreNames.contains("mbtiles")) {
+            //     var mbtiles = db.createObjectStore("mbtiles", {
+            //         autoIncrement: true,
+            //     });
+            // }
+            // if (!db.objectStoreNames.contains("complete_surveys")) {
+            //     var complete_surveys = db.createObjectStore(
+            //         "complete_surveys",
+            //         {
+            //             autoIncrement: true,
+            //         }
+            //     );
+            // }
         };
         db_mobilesurvey.onerror = function (e) {
             console.log("onerror!");
@@ -89,9 +107,19 @@
             response.json()
         );
         const survey = JSON.parse(pre_survey);
-        const objects = JSON.parse(pre_objects);
+        const object_id = survey.survey_body.object_code
+        const pre_objects2 = JSON.parse(pre_objects);
+        const objects = pre_objects2.map(elem => {
+            const new_elem  = {}
+            const geometry = JSON.parse(elem.st_asgeojson)
+            new_elem.geometry = geometry
+            new_elem.properties = {}
+            new_elem.properties.id = elem[object_id]
+            new_elem.type = 'Feature'
+            return new_elem
+        })
         const survey_name = survey.survey_body.name + " " + object_code;
-        survey.ojbects = objects;
+        survey.objects = objects;
         survey.survey_name = survey_name;
         const mbitles = await fetch(mbtiles_url).then((response) =>
             response.blob().then((blob) => save_mbtiles(blob, survey_name))

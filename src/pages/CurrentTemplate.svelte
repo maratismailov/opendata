@@ -4,10 +4,13 @@
     import L from "leaflet";
     // import { * } from 'Leaflet.TileLayer.MBTiles';
     import "Leaflet.TileLayer.MBTiles";
+    import "@geoman-io/leaflet-geoman-free";
+    import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
     import { store_current_template } from "../stores.js";
 
     import Parsed from "../components/Parsed.svelte";
+    // import { mapEditor } from "../../public/leaflet/geoman/map-editor.dev";
 
     export let url;
     export let dictionary;
@@ -19,6 +22,18 @@
     let zoom = 15;
     let is_map = true;
     let height = (window.innerHeight * 0.78).toString() + "px";
+    let geojsonMarkerOptions = {
+        radius: 8,
+        fillColor: "#ff7800",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8,
+    };
+    let objects_layer;
+    // const geomanClickOnLayer = (a, b) => {
+    //     console.log("dd");
+    // };
 
     onMount(() => {
         if (!("indexedDB" in window)) {
@@ -54,6 +69,8 @@
                 var mbtiles = event.target.result;
                 map_url = URL.createObjectURL(mbtiles);
                 createMap();
+                // mapEditor.putGeoJSONToMap(map, template.objects, "en", false);
+
                 // URL.revokeObjectURL(imgURL);
             };
         // console.log(survey_name);
@@ -81,19 +98,136 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
-        let southWest = L.latLng(parseFloat(template.bounds[2])+0.01, parseFloat(template.bounds[0])),
-            northEast = L.latLng(parseFloat(template.bounds[3])+0.01, parseFloat(template.bounds[1])),
+        let southWest = L.latLng(
+                parseFloat(template.bounds[2]) + 0.01,
+                parseFloat(template.bounds[0])
+            ),
+            northEast = L.latLng(
+                parseFloat(template.bounds[3]) + 0.01,
+                parseFloat(template.bounds[1])
+            ),
             bounds = L.latLngBounds(southWest, northEast);
         map = L.map("map").fitBounds(bounds);
-        console.log(bounds)
+        console.log(bounds);
         L.tileLayer
             .mbTiles(map_url, {
                 attribution:
                     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             })
             .addTo(map);
+        objects_layer = L.geoJSON(null, {
+            onEachFeature: onEachFeature,
+            pmIgnore: true,
+        }).addTo(map);
+        template.objects.forEach((elem) => {
+            objects_layer.addData(elem);
+        });
+
+        // L.geoJson(geoJsonData, {
+        //     onEachFeature: function (feature, layer) {
+        //         var label = L.marker(layer.getBounds().getCenter(), {
+        //             icon: L.divIcon({
+        //                 className: "label",
+        //                 html: feature.properties.NAME,
+        //                 iconSize: [100, 40],
+        //             }),
+        //         }).addTo(map);
+        //     },
+        // });
+        // template.objects.forEach((elem) => {
+        //     L.geoJSON(elem, {
+        //         onEachFeature: onEachFeature,
+        //     }).addTo(map);
+        // });
+        map.pm.addControls({
+            position: "topleft",
+            drawCircle: false,
+        });
+        map.on("pm:cut", (e) => {
+            console.log(e);
+            e.layer.feature.properties = e.originalLayer.feature.properties;
+        });
+
         is_map = false;
     };
+    const onEachFeature = (feature, layer) => {
+        layer.on({
+            click: () => layer_click(feature, layer),
+        });
+        // try {
+        //     layer.bindPopup(
+        //         template.survey_body.object_code + " " + feature.properties.id
+        //     );
+        // } catch (e) {
+        //     console.log(e);
+        // }
+        if (feature.properties) {
+            layer.bindPopup(
+                template.survey_body.object_code + " " + feature.properties.id
+            );
+        }
+        let center = layer.getBounds().getCenter();
+        // // does this feature have a property named popupContent?
+        // if (feature.id) {
+        //     layer.bindPopup("dd").addTo(map);
+        //     // layer.bindPopup("feature.id");
+        // }
+        if (feature.id) {
+            var label = L.marker(center, {
+                icon: L.divIcon({
+                    className: "label",
+                    html: feature.id,
+                    iconSize: [0, 0],
+                }),
+            }).addTo(map);
+        }
+    };
+
+    // function onEachFeature(feature, layer) {
+    // 	var popupContent = "<p>I started out as a GeoJSON " +
+    // 			feature.geometry.type + ", but now I'm a Leaflet vector!</p>";
+
+    // 	if (feature.properties && feature.properties.popupContent) {
+    // 		popupContent += feature.properties.popupContent;
+    // 	}
+
+    // 	layer.bindPopup(popupContent);
+    // }
+
+    const layer_click = (feature, layer) => {
+        layer.bindPopup(
+            template.survey_body.object_code + " " + feature.properties.id
+        );
+        console.log("ddd", feature);
+        layer.setStyle({ pmIgnore: false });
+        L.PM.reInitLayer(layer);
+        // map.fitBounds(e.target.getBounds());
+    };
+
+    // var polygonCenter = layer.getBounds().getCenter();
+
+    // // e.g. using Leaflet.label plugin
+    // L.marker(polygonCenter)
+    //     .bindLabel(feature.properties["NAME"], { noHide: true })
+    //     .addTo(map);
+
+    // L.geoJSON(someGeojsonFeature, {
+    //     pointToLayer: function (feature, latlng) {
+    //         return L.circleMarker(latlng, geojsonMarkerOptions);
+    //     },
+    // }).addTo(map);
+    // var pointLayer = L.geoJSON(null, {
+    //     pointToLayer: function (feature, latlng) {
+    //         label = String(feature.id); // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
+    //         return new L.CircleMarker(latlng, {
+    //             radius: 1,
+    //         })
+    //             .bindTooltip(label, { permanent: true, opacity: 0.7 })
+    //             .openTooltip();
+    //     },
+    // });
+    // pointLayer.addData(data_points);
+    // mymap.addLayer(pointLayer);
 
     const resize = () => {
         height = (window.innerHeight * 0.78).toString() + "px";
@@ -133,7 +267,7 @@
         <!-- {/if} -->
         <button
             on:click={() => {
-                console.log(template);
+                console.log(objects_layer);
             }}>test</button
         >
         <Parsed {template} />
