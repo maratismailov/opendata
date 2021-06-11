@@ -98,13 +98,14 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
+        let bounds2 = Object.values(template.bounds)
         let southWest = L.latLng(
-                parseFloat(template.bounds[2]) + 0.01,
-                parseFloat(template.bounds[0])
+                parseFloat(bounds2[2]) + 0.01,
+                parseFloat(bounds2[0])
             ),
             northEast = L.latLng(
-                parseFloat(template.bounds[3]) + 0.01,
-                parseFloat(template.bounds[1])
+                parseFloat(bounds2[3]) + 0.01,
+                parseFloat(bounds2[1])
             ),
             bounds = L.latLngBounds(southWest, northEast);
         map = L.map("map").fitBounds(bounds);
