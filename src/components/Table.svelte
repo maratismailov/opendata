@@ -14,8 +14,8 @@
 
 <div class="table">
   {#each element.fields as element}
-    <div>{element.id}</div>
-    <div>{element.name_ru}</div>
+    <!-- <div>{element.id}</div> -->
+    <div>{element.name}</div>
     {#if element.type === 'text'}
       <TextInput {element} />
     {:else if element.type === 'number'}

@@ -100,11 +100,11 @@
     const createMap = () => {
         let bounds2 = Object.values(template.bounds)
         let southWest = L.latLng(
-                parseFloat(bounds2[2]) + 0.01,
+                parseFloat(bounds2[2]),
                 parseFloat(bounds2[0])
             ),
             northEast = L.latLng(
-                parseFloat(bounds2[3]) + 0.01,
+                parseFloat(bounds2[3]),
                 parseFloat(bounds2[1])
             ),
             bounds = L.latLngBounds(southWest, northEast);
@@ -113,7 +113,7 @@
         L.tileLayer
             .mbTiles(map_url, {
                 attribution:
-                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    '&copy; Bing Maps',
             })
             .addTo(map);
         objects_layer = L.geoJSON(null, {
@@ -268,7 +268,7 @@
         <!-- {/if} -->
         <button
             on:click={() => {
-                console.log(objects_layer);
+                console.log(template);
             }}>test</button
         >
         <Parsed {template} />
