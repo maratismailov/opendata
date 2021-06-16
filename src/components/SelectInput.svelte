@@ -17,7 +17,7 @@
   //   result = await res.json();
   // });
 
-  let selected;
+  // let selected;
   const getIndex = (item) => {
     return item.findIndex((i) => i.id === 2);
   };
@@ -32,10 +32,10 @@
 </script>
 
 {#if element.select_values}
-  <input bind:value={element.selected} type="text" />
+  <input bind:value={element.value} type="text" />
 {/if}
 {#each element.select_values as option}
-  {#if option.code == element.selected}
+  {#if option.code == element.value}
     <div>{option.name} {option.code}</div>
   {/if}
 {/each}

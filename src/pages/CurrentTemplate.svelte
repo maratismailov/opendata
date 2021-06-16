@@ -14,6 +14,7 @@
 
     export let url;
     export let dictionary;
+    let data_to_send;
     let template;
     let db;
     let map_url;
@@ -98,7 +99,7 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
-        let bounds2 = Object.values(template.bounds)
+        let bounds2 = Object.values(template.bounds);
         let southWest = L.latLng(
                 parseFloat(bounds2[2]),
                 parseFloat(bounds2[0])
@@ -112,8 +113,7 @@
         console.log(bounds);
         L.tileLayer
             .mbTiles(map_url, {
-                attribution:
-                    '&copy; Bing Maps',
+                attribution: "&copy; Bing Maps",
             })
             .addTo(map);
         objects_layer = L.geoJSON(null, {
@@ -233,6 +233,61 @@
     const resize = () => {
         height = (window.innerHeight * 0.78).toString() + "px";
     };
+
+    const parse_tables = () => {
+        console.log(template);
+        let table_data = [];
+        let parsed_data = template.survey_body.survey_body.map((elem) => {
+            if (elem.type !== "table") {
+                return elem;
+            } else {
+                elem.fields.forEach((elem2, index) => {
+                    elem2.forEach((elem3) => {
+                        const new_index = (index + 1) * -1;
+                        table_data.push({
+                            id: elem.id + "." + elem3.id + "." + new_index,
+                            value: elem3.value,
+                        });
+                        // table_data.push({ value: elem3.value });
+                        // table_data.push('id:' + elem.id + '.' + elem3.id)
+                        // table_data.push('val: ' + elem3.value)
+                    });
+                });
+                // const test = table_data.reduce( (result, current) => result.concat(current.id) , []);
+                // table_data.forEach(elem => {
+                //     return elem
+                // })
+                return;
+            }
+        });
+        parsed_data = parsed_data.concat(table_data);
+        parsed_data = parsed_data.concat(template.initial_fields);
+        // console.log(parsed_data)
+        const filtered = parsed_data.filter(function (el) {
+            return el != null;
+        });
+        data_to_send = filtered.map((elem) => {
+            const data = {};
+            if (elem.id) {
+                data.id = elem.id;
+            } else if (elem.name) {
+                data.id = elem.name;
+            }
+            data.val = elem.value;
+            return data;
+        });
+
+        send_data(data_to_send);
+    };
+
+    const send_data = async (data) => {
+        // url = "https://dev.forest.caiag.kg/ru/rent/standest/savestandestform"
+        url =
+            "http://0.0.0.0:8000/send_standestimation_data?data=" +
+            JSON.stringify(data);
+        const post = await fetch(url).then((response) => response.json());
+        console.log(post);
+    };
     // const show_map = () => {
     //     is_map = true
     //     map.setView(template.center, zoom);
@@ -271,7 +326,10 @@
                 console.log(template);
             }}>test</button
         >
-        <Parsed {template} />
+        <button on:click={parse_tables}>test to send</button>
+        <div class="parsed">
+            <Parsed {template} />
+        </div>
     </div>
 </div>
 <div class:hidden={!is_map}>
@@ -281,6 +339,9 @@
 </div>
 
 <style>
+    .parsed {
+        padding-bottom: 50px;
+    }
     .hidden {
         display: none;
     }
