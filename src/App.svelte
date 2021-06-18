@@ -9,6 +9,7 @@
 	let url;
 	let lng = "ru";
 	let dictionary;
+    let db;
 
 	if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
 		url = "http://0.0.0.0:8000";
@@ -20,6 +21,35 @@
 	}
 
 	onMount(async () => {
+		var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
+        db_mobilesurvey.onsuccess = function (e) {
+            db = e.target.result;
+        };
+        db_mobilesurvey.onerror = function (e) {
+            console.log("onerror!");
+            console.dir(e);
+        };
+        db_mobilesurvey.onupgradeneeded = function (e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("templates")) {
+                var templates = db.createObjectStore("templates", {
+                    autoIncrement: true,
+                });
+            }
+            if (!db.objectStoreNames.contains("mbtiles")) {
+                var mbtiles = db.createObjectStore("mbtiles", {
+                    autoIncrement: true,
+                });
+            }
+            if (!db.objectStoreNames.contains("complete_surveys")) {
+                var complete_surveys = db.createObjectStore(
+                    "complete_surveys",
+                    {
+                        autoIncrement: true,
+                    }
+                );
+            }
+        };
 		const res = await fetch(
 			"https://dev.forest.caiag.kg/" +
 				lng +
