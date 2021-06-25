@@ -110,7 +110,6 @@
             ),
             bounds = L.latLngBounds(southWest, northEast);
         map = L.map("map").fitBounds(bounds);
-        console.log(bounds);
         L.tileLayer
             .mbTiles(map_url, {
                 attribution: "&copy; Bing Maps",
@@ -235,7 +234,6 @@
     };
 
     const parse_tables = () => {
-        console.log(template);
         let table_data = [];
         let parsed_data = template.survey_body.survey_body.map((elem) => {
             if (elem.type !== "table") {
@@ -262,6 +260,7 @@
         });
         parsed_data = parsed_data.concat(table_data);
         parsed_data = parsed_data.concat(template.initial_fields);
+        console.log(template.initial_fields)
         // console.log(parsed_data)
         const filtered = parsed_data.filter(function (el) {
             return el != null;
@@ -276,17 +275,17 @@
             data.val = elem.value;
             return data;
         });
-
         send_data(data_to_send);
     };
 
     const send_data = async (data) => {
+        let string = JSON.stringify(data)
+        string = string.replace(/\+/gi, "%2B")
         // url = "https://dev.forest.caiag.kg/ru/rent/standest/savestandestform"
         url =
             "http://0.0.0.0:8000/send_standestimation_data?data=" +
-            JSON.stringify(data);
+            string;
         const post = await fetch(url).then((response) => response.json());
-        console.log(post);
     };
     // const show_map = () => {
     //     is_map = true

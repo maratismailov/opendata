@@ -22,13 +22,13 @@
     return item.findIndex((i) => i.id === 2);
   };
   const get_index = (array, attr, value) => {
-    for(var i = 0; i < array.length; i += 1) {
-        if(array[i][attr] === value) {
-            return i;
-        }
+    for (var i = 0; i < array.length; i += 1) {
+      if (array[i][attr] === value) {
+        return i;
+      }
     }
     return -1;
-}
+  };
 </script>
 
 {#if element.select_values}
@@ -37,6 +37,8 @@
 {#each element.select_values as option}
   {#if option.code == element.value}
     <div>{option.name} {option.code}</div>
+  <!-- {:else}
+    <div>no value</div> -->
   {/if}
 {/each}
 <!-- {#if element.select_values}
