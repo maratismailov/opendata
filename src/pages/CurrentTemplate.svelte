@@ -282,10 +282,10 @@
         let string = JSON.stringify(data)
         string = string.replace(/\+/gi, "%2B")
         // url = "https://dev.forest.caiag.kg/ru/rent/standest/savestandestform"
-        url =
-            "http://0.0.0.0:8000/send_standestimation_data?data=" +
-            string;
-        const post = await fetch(url).then((response) => response.json());
+        // url =
+        //     "http://0.0.0.0:8000/send_standestimation_data?data=" +
+        //     string;
+        const post = await fetch(url +  "/send_standestimation_data?data=" + string).then((response) => response.json());
     };
     // const show_map = () => {
     //     is_map = true
