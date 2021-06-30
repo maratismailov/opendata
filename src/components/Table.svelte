@@ -45,16 +45,10 @@
   type="image"
   img
   src="assets/icons/plus.svg"
-  class="delete"
+  class="plus"
   alt="add_field"
   on:click={add_field}
 />
-
-<button
-  on:click={() => {
-    console.log(elements);
-  }}>test</button
->
 
 <style>
   .table {

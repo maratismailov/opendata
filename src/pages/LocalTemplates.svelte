@@ -87,7 +87,7 @@
                         type="image"
                         img
                         src="assets/icons/plus.svg"
-                        class="delete"
+                        class="plus"
                         alt="add_survey"
                         on:click={add_survey(template)}
                     />
