@@ -26,9 +26,10 @@
 
   {#each element.fields as table_element}
     <div >
+      <br>
       {#each table_element as element}
         <!-- <div>{element.id}</div> -->
-        <div>{element.name}</div>
+        <div class="table_name">{element.name}</div>
         <div class = 'table'>
           {#if element.type === "text"}
             <TextInput {element} />

@@ -104,7 +104,7 @@ button:focus {
     padding: 0.1em;
     margin: 0 0 0.5em 0;
   }
-  .table {
+  .table_name {
 	position: relative;
-    margin-left: 25px;
+    margin-left: -225px;
   }

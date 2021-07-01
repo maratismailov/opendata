@@ -22,15 +22,12 @@
           {:else if element.type === "select"}
             <!-- <input bind:value={element.value} type="number" /> -->
             <SelectInput {element} />
-          {/if}
-        </div>
-        <div>
-          {#if element.type === "table"}
+          {:else if element.type === "table"}
             <Table {element} />
           {/if}
         </div>
       </div>
-      <hr>
+      <hr />
     {/each}
   {/if}
 </div>
