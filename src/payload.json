@@ -130,6 +130,7 @@
         "id": "forestcomposition.woodspecies.-2",
         "val": "53"
     },
+
     {
         "id": "forestcomposition.species_percent.-2",
         "val": "70"
@@ -304,6 +305,7 @@
         "id": "plannedcomposition.woodspecies.-1",
         "val": "25"
     },
+
     {
         "id": "plannedcomposition.species_percent.-1",
         "val": "50"

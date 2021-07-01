@@ -24,34 +24,23 @@
   };
 </script>
 
-{#each element.fields as table_element}
-  <div class="table">
-    {#each table_element as element}
-      <!-- <div>{element.id}</div> -->
-      <div>{element.name}</div>
-      {#if element.type === "text"}
-        <TextInput {element} />
-      {:else if element.type === "number"}
-        <NumberInput {element} />
-      {:else if element.type === "select"}
-        <!-- <input bind:value={element.value} type="number" /> -->
-        <SelectInput {element} />
-      {/if}
-    {/each}
-  </div>
-{/each}
+  {#each element.fields as table_element}
+    <div >
+      {#each table_element as element}
+        <!-- <div>{element.id}</div> -->
+        <div>{element.name}</div>
+        <div class = 'table'>
+          {#if element.type === "text"}
+            <TextInput {element} />
+          {:else if element.type === "number"}
+            <NumberInput {element} />
+          {:else if element.type === "select"}
+            <!-- <input bind:value={element.value} type="number" /> -->
+            <SelectInput {element} />
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {/each}
 
-<input
-  type="image"
-  img
-  src="assets/icons/plus.svg"
-  class="plus"
-  alt="add_field"
-  on:click={add_field}
-/>
-
-<style>
-  .table {
-    margin-left: 25px;
-  }
-</style>
+  <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_field" on:click={add_field} />

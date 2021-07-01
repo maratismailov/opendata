@@ -3,7 +3,8 @@
 
     import { store_current_template } from "../stores.js";
 
-    export let url;
+    import { init_db } from "../init_db";
+
     export let dictionary;
     let templates_list;
     let initial_fields;
@@ -12,10 +13,7 @@
     let template_list;
 
     onMount(() => {
-        if (!("indexedDB" in window)) {
-            console.log("This browser doesn't support IndexedDB");
-            return;
-        }
+        init_db();
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
@@ -24,14 +22,6 @@
         db_mobilesurvey.onerror = function (e) {
             console.log("onerror!");
             console.dir(e);
-        };
-        db_mobilesurvey.onupgradeneeded = function (e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("templates")) {
-                var templates = db.createObjectStore("templates", {
-                    autoIncrement: true,
-                });
-            }
         };
     });
     const get_templates = () => {
@@ -64,10 +54,7 @@
             let template = e.target.result;
             console.log(template);
             store_current_template.set(template);
-            localStorage.setItem(
-                "current_template",
-                JSON.stringify(template)
-            );
+            localStorage.setItem("current_template", JSON.stringify(template));
         };
         window.location.href = "/current";
     };
@@ -83,14 +70,7 @@
                     {template}
                 </div>
                 <div>
-                    <input
-                        type="image"
-                        img
-                        src="assets/icons/plus.svg"
-                        class="plus"
-                        alt="add_survey"
-                        on:click={add_survey(template)}
-                    />
+                    <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_survey" on:click={add_survey(template)} />
                 </div>
             </div>
             <hr />

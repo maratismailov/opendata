@@ -1,6 +1,8 @@
 <script>
     import { onMount } from "svelte";
 
+    import { init_db } from '../init_db'
+
     import L from "leaflet";
     // import { * } from 'Leaflet.TileLayer.MBTiles';
     import "Leaflet.TileLayer.MBTiles";
@@ -12,7 +14,7 @@
     import Parsed from "../components/Parsed.svelte";
     // import { mapEditor } from "../../public/leaflet/geoman/map-editor.dev";
 
-    export let url;
+    export let server_url;
     export let dictionary;
     let data_to_send;
     let template;
@@ -37,10 +39,7 @@
     // };
 
     onMount(() => {
-        if (!("indexedDB" in window)) {
-            console.log("This browser doesn't support IndexedDB");
-            return;
-        }
+        init_db()
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
@@ -51,29 +50,21 @@
             console.log("onerror!");
             console.dir(e);
         };
-        db_mobilesurvey.onupgradeneeded = function (e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("templates")) {
-                var templates = db.createObjectStore("templates", {
-                    autoIncrement: true,
-                });
-            }
-        };
+
     });
 
     const get_mbtiles = (survey_name) => {
         var transaction = db.transaction(["mbtiles"], "readonly");
 
-        transaction.objectStore("mbtiles").get(survey_name).onsuccess =
-            function (event) {
-                // URL.revokeObjectURL(mbtiles);
-                var mbtiles = event.target.result;
-                map_url = URL.createObjectURL(mbtiles);
-                createMap();
-                // mapEditor.putGeoJSONToMap(map, template.objects, "en", false);
+        transaction.objectStore("mbtiles").get(survey_name).onsuccess = function (event) {
+            // URL.revokeObjectURL(mbtiles);
+            var mbtiles = event.target.result;
+            map_url = URL.createObjectURL(mbtiles);
+            createMap();
+            // mapEditor.putGeoJSONToMap(map, template.objects, "en", false);
 
-                // URL.revokeObjectURL(imgURL);
-            };
+            // URL.revokeObjectURL(imgURL);
+        };
         // console.log(survey_name);
         // var transaction = db.transaction(["mbtiles"], "readonly");
         // var store = transaction.objectStore("mbtiles");
@@ -100,14 +91,8 @@
 
     const createMap = () => {
         let bounds2 = Object.values(template.bounds);
-        let southWest = L.latLng(
-                parseFloat(bounds2[2]),
-                parseFloat(bounds2[0])
-            ),
-            northEast = L.latLng(
-                parseFloat(bounds2[3]),
-                parseFloat(bounds2[1])
-            ),
+        let southWest = L.latLng(parseFloat(bounds2[2]), parseFloat(bounds2[0])),
+            northEast = L.latLng(parseFloat(bounds2[3]), parseFloat(bounds2[1])),
             bounds = L.latLngBounds(southWest, northEast);
         map = L.map("map").fitBounds(bounds);
         L.tileLayer
@@ -162,9 +147,7 @@
         //     console.log(e);
         // }
         if (feature.properties) {
-            layer.bindPopup(
-                template.survey_body.object_code + " " + feature.properties.id
-            );
+            layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
         }
         let center = layer.getBounds().getCenter();
         // // does this feature have a property named popupContent?
@@ -195,9 +178,7 @@
     // }
 
     const layer_click = (feature, layer) => {
-        layer.bindPopup(
-            template.survey_body.object_code + " " + feature.properties.id
-        );
+        layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
         console.log("ddd", feature);
         layer.setStyle({ pmIgnore: false });
         L.PM.reInitLayer(layer);
@@ -260,7 +241,7 @@
         });
         parsed_data = parsed_data.concat(table_data);
         parsed_data = parsed_data.concat(template.initial_fields);
-        console.log(template.initial_fields)
+        console.log(template.initial_fields);
         // console.log(parsed_data)
         const filtered = parsed_data.filter(function (el) {
             return el != null;
@@ -279,37 +260,21 @@
     };
 
     const send_data = async (data) => {
-        let string = JSON.stringify(data)
-        string = string.replace(/\+/gi, "%2B")
-        // url = "https://dev.forest.caiag.kg/ru/rent/standest/savestandestform"
-        // url =
-        //     "http://0.0.0.0:8000/send_standestimation_data?data=" +
-        //     string;
-        const post = await fetch(url +  "/send_standestimation_data?data=" + string).then((response) => response.json());
+        let string = JSON.stringify(data);
+        string = string.replace(/\+/gi, "%2B");
+        const post = await fetch(server_url + "/send_standestimation_data?data=" + string).then((response) => response.json());
     };
-    // const show_map = () => {
-    //     is_map = true
-    //     map.setView(template.center, zoom);
-    //     // map.invalidateSize()
-    //     // resize()
-    // }
 </script>
 
 <svelte:window on:resize={resize} on:orientationchange={resize} />
 
 <ul id="menu">
     <li>
-        <button
-            on:click|preventDefault={() => (is_map = false)}
-            class:selected={!is_map}>survey</button
-        >
+        <button on:click|preventDefault={() => (is_map = false)} class:selected={!is_map}>survey</button>
     </li>
     |
     <li>
-        <button
-            on:click|preventDefault={() => (is_map = true)}
-            class:selected={is_map}>map</button
-        >
+        <button on:click|preventDefault={() => (is_map = true)} class:selected={is_map}>map</button>
     </li>
 </ul>
 
