@@ -30,16 +30,18 @@
       <br>
       {#each table_element as element}
         <!-- <div>{element.id}</div> -->
-        <div class="table_name">{element.name}</div>
-        <div class = 'table'>
-          {#if element.type === "text"}
-            <TextInput {element} />
-          {:else if element.type === "number"}
-            <NumberInput {element} />
-          {:else if element.type === "select"}
-            <!-- <input bind:value={element.value} type="number" /> -->
-            <SelectInput {element} />
-          {/if}
+        <div class="table">
+          <div class="table_name">{element.name}</div>
+          <div class="table_input">
+            {#if element.type === "text"}
+              <TextInput {element} />
+            {:else if element.type === "number"}
+              <NumberInput {element} />
+            {:else if element.type === "select"}
+              <!-- <input bind:value={element.value} type="number" /> -->
+              <SelectInput {element} />
+            {/if}
+          </div>
         </div>
       {/each}
     </div>

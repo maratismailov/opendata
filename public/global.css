@@ -106,5 +106,14 @@ button:focus {
   }
   .table_name {
 	position: relative;
-    margin-left: -225px;
+    margin-left: -250px;
+	width: 150px;
   }
+.table {
+	display: flex;
+}
+
+.table_input {
+    margin-left: 100px;
+
+}
