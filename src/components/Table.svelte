@@ -27,6 +27,7 @@
   {#each element.fields as table_element}
     <div >
       <br>
+      <br>
       {#each table_element as element}
         <!-- <div>{element.id}</div> -->
         <div class="table_name">{element.name}</div>
