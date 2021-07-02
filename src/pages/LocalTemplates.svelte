@@ -11,6 +11,7 @@
     let initial_fields_values;
     let db;
     let template_list;
+    let complete_surveys;
 
     onMount(() => {
         init_db();
@@ -18,6 +19,7 @@
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
             get_templates();
+            get_complete_surveys();
         };
         db_mobilesurvey.onerror = function (e) {
             console.log("onerror!");
@@ -38,6 +40,20 @@
                 // return JSON.parse(elem);
                 return elem;
             });
+        };
+    };
+
+    const get_complete_surveys = () => {
+        var transaction = db.transaction(["complete_surveys"], "readonly");
+        var store = transaction.objectStore("complete_surveys");
+        var request = store.getAllKeys();
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            complete_surveys = e.target.result;
+            console.log(complete_surveys);
         };
     };
 
@@ -68,6 +84,15 @@
             <div>
                 <div>
                     {template}
+                    <div class="complete">
+                        {#if complete_surveys}
+                            {#each complete_surveys as survey}
+                                <div>
+                                    {survey}
+                                </div>
+                            {/each}
+                        {/if}
+                    </div>
                 </div>
                 <div>
                     <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_survey" on:click={add_survey(template)} />

@@ -117,3 +117,7 @@ button:focus {
     margin-left: 100px;
 
 }
+
+.complete {
+	font-size: 0.7em;
+}
