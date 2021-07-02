@@ -73,7 +73,6 @@
         survey.survey_name = survey_name;
         const mbtiles1 = await fetch(mbtiles_url);
         const mbtiles = await mbtiles1.blob().then((blob) => save_mbtiles(blob, survey_name));
-        console.log(mbtiles1)
         const mbtiles_status = await mbtiles1.status;
         save_survey(survey, survey_name);
         if (pre_objects_status == "200" && pre_survey_status == "200" && mbtiles_status == "200") {

@@ -1,7 +1,7 @@
 <script>
     import { onMount } from "svelte";
 
-    import { init_db } from '../init_db'
+    import { init_db } from "../init_db";
 
     import L from "leaflet";
     // import { * } from 'Leaflet.TileLayer.MBTiles';
@@ -34,12 +34,15 @@
         fillOpacity: 0.8,
     };
     let objects_layer;
+    let object_code_value = "";
+    let object_name = "";
+    let is_object_missing = false;
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
     // };
 
     onMount(() => {
-        init_db()
+        init_db();
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
@@ -50,8 +53,31 @@
             console.log("onerror!");
             console.dir(e);
         };
-
     });
+
+    const save_survey = () => {
+        is_object_missing = false;
+        const object_code = template.survey_body.object_code;
+        console.log(object_code);
+        template.survey_body.survey_body.forEach((elem) => {
+            if (elem.id == object_code) {
+                object_code_value = elem.value;
+                object_name = elem.name;
+            }
+        });
+        if (!object_code_value) {
+            is_object_missing = true;
+        } else {
+            const name_to_save = template.survey_name + "-" + object_code_value;
+            var transaction = db.transaction(["complete_surveys"], "readwrite");
+            var store = transaction.objectStore("complete_surveys");
+            var request = store.put(template.survey_body.survey_body, name_to_save);
+            request.onerror = function (e) {
+                console.log("Error", e.target.error.name);
+            };
+            request.onsuccess = function (e) {};
+        }
+    };
 
     const get_mbtiles = (survey_name) => {
         var transaction = db.transaction(["mbtiles"], "readonly");
@@ -278,6 +304,11 @@
     </li>
 </ul>
 
+{#if is_object_missing}
+    <div style="color: red;">Отсутствует {object_name}</div>
+{/if}
+<button on:click={save_survey}>save</button>
+
 <div class:hidden={is_map}>
     <div>
         <!-- {#if dictionary} -->
@@ -293,6 +324,7 @@
         <button on:click={parse_tables}>test to send</button>
         <div class="parsed">
             <Parsed {template} />
+            <button on:click={save_survey}>save</button>
         </div>
     </div>
 </div>
