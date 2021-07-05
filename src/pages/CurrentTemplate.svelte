@@ -22,7 +22,7 @@
     let map_url;
     let map;
     let center;
-    let zoom = 15;
+    let zoom = 20;
     let is_map = true;
     let height = (window.innerHeight * 0.78).toString() + "px";
     let geojsonMarkerOptions = {
@@ -34,9 +34,13 @@
         fillOpacity: 0.8,
     };
     let objects_layer;
+    let orig_objects;
     let object_code_value = "";
     let object_name = "";
     let is_object_missing = false;
+    let layer_to_edit;
+    let layer_name_to_edit = "";
+    let objects_to_save = []
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
     // };
@@ -116,11 +120,12 @@
     template = JSON.parse(localStorage.getItem("current_template"));
 
     const createMap = () => {
+        orig_objects = JSON.parse(JSON.stringify(template.objects));
         let bounds2 = Object.values(template.bounds);
         let southWest = L.latLng(parseFloat(bounds2[2]), parseFloat(bounds2[0])),
             northEast = L.latLng(parseFloat(bounds2[3]), parseFloat(bounds2[1])),
             bounds = L.latLngBounds(southWest, northEast);
-        map = L.map("map").fitBounds(bounds);
+        map = L.map("map", { maxZoom: 20 }).fitBounds(bounds);
         L.tileLayer
             .mbTiles(map_url, {
                 attribution: "&copy; Bing Maps",
@@ -130,9 +135,15 @@
             onEachFeature: onEachFeature,
             pmIgnore: true,
         }).addTo(map);
-        template.objects.forEach((elem) => {
+        const new_geom = JSON.parse(localStorage.getItem('objects_to_save'))
+        console.log(template.objects)
+        console.log(new_geom)
+        new_geom.forEach((elem) => {
             objects_layer.addData(elem);
         });
+        // template.objects.forEach((elem) => {
+        //     objects_layer.addData(elem);
+        // });
 
         // L.geoJson(geoJsonData, {
         //     onEachFeature: function (feature, layer) {
@@ -206,9 +217,43 @@
     const layer_click = (feature, layer) => {
         layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
         console.log("ddd", feature);
-        layer.setStyle({ pmIgnore: false });
-        L.PM.reInitLayer(layer);
+        layer_to_edit = null;
+        layer_to_edit = layer;
+        layer_name_to_edit = template.survey_body.object_code + " " + feature.properties.id;
+        // layer.setStyle({ pmIgnore: false });
+        // L.PM.reInitLayer(layer);
         // map.fitBounds(e.target.getBounds());
+    };
+
+    const enable_edit = (layer) => {
+        let objects_array = JSON.parse(localStorage.getItem('objects_to_save'))
+        layer.setStyle({ pmIgnore: false });
+        layer.on("pm:update", (e) => {
+            console.log(e);
+            // compare_geom(e.target.toGeoJSON());
+            objects_array.push(e.target.toGeoJSON())
+            localStorage.setItem('objects_to_save', JSON.stringify(objects_array))
+        });
+        L.PM.reInitLayer(layer);
+    };
+
+    const disable_edit = (layer) => {
+        layer.setStyle({ pmIgnore: true });
+        L.PM.reInitLayer(layer);
+    };
+
+    const compare_geom = (geom) => {
+        let orig = JSON.stringify(orig_objects[25].geometry.coordinates[0][0]);
+        let new_geom = JSON.stringify(geom.geometry.coordinates[0][0]);
+        // let new_geom = JSON.stringify(geom)
+        // let new_geom = geom[0][0].map(elem => {
+        //     const point = map.latLngToLayerPoint(elem)
+        //     return point
+        // })
+        console.log(orig);
+        console.log(new_geom)
+        // console.log(map.latLngToLayerPoint(new_geom))
+        console.log(orig === new_geom);
     };
 
     // var polygonCenter = layer.getBounds().getCenter();
@@ -307,20 +352,16 @@
 {#if is_object_missing}
     <div style="color: red;">Отсутствует {object_name}</div>
 {/if}
-<button on:click={save_survey}>save</button>
 
 <div class:hidden={is_map}>
+    <button on:click={save_survey}>save</button>
     <div>
         <!-- {#if dictionary} -->
         {#if template}
             {template.survey_name}
         {/if}
         <!-- {/if} -->
-        <button
-            on:click={() => {
-                console.log(template);
-            }}>test</button
-        >
+        <button on:click={compare_geom}>test</button>
         <button on:click={parse_tables}>test to send</button>
         <div class="parsed">
             <Parsed {template} />
@@ -332,6 +373,9 @@
     <div style="height: {height}" class="map" id="map">
         <slot />
     </div>
+    current layer: {layer_name_to_edit}
+    <button on:click={() => enable_edit(layer_to_edit)}>enable edit</button>
+    <button on:click={() => disable_edit(layer_to_edit)}>disable edit</button>
 </div>
 
 <style>
