@@ -37,10 +37,12 @@
     let orig_objects;
     let object_code_value = "";
     let object_name = "";
+    let object_num = "";
     let is_object_missing = false;
     let layer_to_edit;
     let layer_name_to_edit = "";
-    let objects_to_save = []
+    let objects_to_save = [];
+    let new_geom = [];
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
     // };
@@ -51,7 +53,26 @@
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
             const survey_name = template.survey_name;
-            get_mbtiles(survey_name);
+            get_objects_to_save().then((result) => {
+                new_geom = result;
+                console.log("result", new_geom);
+                get_mbtiles(survey_name);
+            });
+
+            // let new_objects = [];
+            // var transaction = db.transaction(["objects_to_save"], "readonly");
+            // var store = transaction.objectStore("objects_to_save");
+            // var request = store.getAll();
+            // request.onerror = function (e) {
+            //     console.log("Error", e.target.error.name);
+            // };
+            // request.onsuccess = function (e) {
+            //     new_objects = e.target.result;
+            // };
+
+            // objects_to_save = get_objects_to_save();
+            // console.log("oj2", new_objects);
+            // console.log('oj2', get_objects_to_save())
         };
         db_mobilesurvey.onerror = function (e) {
             console.log("onerror!");
@@ -90,29 +111,40 @@
             // URL.revokeObjectURL(mbtiles);
             var mbtiles = event.target.result;
             map_url = URL.createObjectURL(mbtiles);
+            // get_objects_to_save();
             createMap();
-            // mapEditor.putGeoJSONToMap(map, template.objects, "en", false);
-
-            // URL.revokeObjectURL(imgURL);
         };
-        // console.log(survey_name);
-        // var transaction = db.transaction(["mbtiles"], "readonly");
-        // var store = transaction.objectStore("mbtiles");
-        // // var request = store.get(template_name.toString());
-        // var request = store.get(survey_name);
+    };
 
-        // request.onerror = function (e) {
-        //     console.log("Error", e.target.error.name);
-        // };
-        // request.onsuccess = function (e) {
-        //     let blob = e.target.result;
-        //     map_url = window.URL.createObjectURL(blob);
-        //     // map_url = URL.createObjectURL(blob);
-        //     // map_url = map_url.substring(5);
-        //     // const str_arr = map_url.split("/")[3]
-        //     // map_url = 'http://localhost:5555/' + str_arr
-        //     createMap();
-        // };
+    // function getLayoutData(key) {
+    //     return new Promise(function (resolve) {
+    //         indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+    //         var open = indexedDB.open("DB", 1);
+
+    //         open.onsuccess = function () {
+    //             db = open.result;
+    //             tx = db.transaction("Store", "readwrite");
+    //             var store = tx.objectStore("Store");
+
+    //             store.get(key).onsuccess = function (event) {
+    //                 return resolve(event.target.result);
+    //             };
+    //         };
+    //     });
+    // }
+
+    const get_objects_to_save = () => {
+        return new Promise(function (resolve) {
+            var transaction = db.transaction(["objects_to_save"], "readonly");
+            var store = transaction.objectStore("objects_to_save");
+            var request = store.getAll();
+            request.onerror = function (e) {
+                console.log("Error", e.target.error.name);
+            };
+            request.onsuccess = function (e) {
+                return resolve(e.target.result);
+            };
+        });
     };
 
     // objectURL = URL.createObjectURL(blob);
@@ -135,15 +167,34 @@
             onEachFeature: onEachFeature,
             pmIgnore: true,
         }).addTo(map);
-        const new_geom = JSON.parse(localStorage.getItem('objects_to_save'))
-        console.log(template.objects)
-        console.log(new_geom)
-        new_geom.forEach((elem) => {
-            objects_layer.addData(elem);
-        });
-        // template.objects.forEach((elem) => {
+        // new_geom = new_objects;
+        console.log("oj2", new_geom);
+        console.log(template.objects);
+        // console.log(new_geom);
+        // new_geom.forEach((elem) => {
         //     objects_layer.addData(elem);
         // });
+        template.objects.forEach((elem) => {
+            objects_layer.addData(elem);
+        });
+        if (template.survey_body.geom_type === "polygon") {
+            map.pm.addControls({
+                position: "topleft",
+                drawCircle: false,
+                drawRectangle: false,
+                drawPolyline: false,
+                drawCircleMarker: false,
+                drawMarker: false,
+                dragMode: false,
+                rotateMode: false,
+            });
+        } else if (template.survey_body.geom_type === "point") {
+            map.pm.addControls({
+                position: "topleft",
+                drawCircle: false,
+                drawRectangle: false,
+            });
+        }
 
         // L.geoJson(geoJsonData, {
         //     onEachFeature: function (feature, layer) {
@@ -161,14 +212,6 @@
         //         onEachFeature: onEachFeature,
         //     }).addTo(map);
         // });
-        map.pm.addControls({
-            position: "topleft",
-            drawCircle: false,
-        });
-        map.on("pm:cut", (e) => {
-            console.log(e);
-            e.layer.feature.properties = e.originalLayer.feature.properties;
-        });
 
         is_map = false;
     };
@@ -176,22 +219,10 @@
         layer.on({
             click: () => layer_click(feature, layer),
         });
-        // try {
-        //     layer.bindPopup(
-        //         template.survey_body.object_code + " " + feature.properties.id
-        //     );
-        // } catch (e) {
-        //     console.log(e);
-        // }
         if (feature.properties) {
             layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
         }
         let center = layer.getBounds().getCenter();
-        // // does this feature have a property named popupContent?
-        // if (feature.id) {
-        //     layer.bindPopup("dd").addTo(map);
-        //     // layer.bindPopup("feature.id");
-        // }
         if (feature.id) {
             var label = L.marker(center, {
                 icon: L.divIcon({
@@ -219,20 +250,35 @@
         console.log("ddd", feature);
         layer_to_edit = null;
         layer_to_edit = layer;
+        object_num = feature.properties.id;
         layer_name_to_edit = template.survey_body.object_code + " " + feature.properties.id;
         // layer.setStyle({ pmIgnore: false });
         // L.PM.reInitLayer(layer);
         // map.fitBounds(e.target.getBounds());
     };
 
+    const put_to_save = (geojson, name) => {
+        var transaction = db.transaction(["objects_to_save"], "readwrite");
+        var store = transaction.objectStore("objects_to_save");
+        var request = store.put(geojson, name);
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {};
+        // localStorage.setItem("objects_to_save", JSON.stringify(objects_array));
+    };
+
     const enable_edit = (layer) => {
-        let objects_array = JSON.parse(localStorage.getItem('objects_to_save'))
+        let object_name_to_save = template.survey_name + "-" + object_num;
+        // let objects_array = JSON.parse(localStorage.getItem("objects_to_save"));
         layer.setStyle({ pmIgnore: false });
         layer.on("pm:update", (e) => {
-            console.log(e);
-            // compare_geom(e.target.toGeoJSON());
-            objects_array.push(e.target.toGeoJSON())
-            localStorage.setItem('objects_to_save', JSON.stringify(objects_array))
+            console.log(template.survey_name + "-" + object_num);
+            // objects_array.push(e.target.toGeoJSON());
+            put_to_save(e.target.toGeoJSON(), object_name_to_save);
+        });
+        layer.on("pm:cut", (e) => {
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save);
         });
         L.PM.reInitLayer(layer);
     };
@@ -251,7 +297,7 @@
         //     return point
         // })
         console.log(orig);
-        console.log(new_geom)
+        console.log(new_geom);
         // console.log(map.latLngToLayerPoint(new_geom))
         console.log(orig === new_geom);
     };
@@ -362,7 +408,12 @@
         {/if}
         <!-- {/if} -->
         <button on:click={compare_geom}>test</button>
-        <button on:click={parse_tables}>test to send</button>
+        <!-- <button on:click={parse_tables}>test to send</button> -->
+        <button
+            on:click={() => {
+                console.log(new_geom);
+            }}>test to send</button
+        >
         <div class="parsed">
             <Parsed {template} />
             <button on:click={save_survey}>save</button>
