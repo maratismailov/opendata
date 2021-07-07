@@ -105,6 +105,7 @@
         var store = transaction.objectStore("templates");
 
         var request = store.put(survey, survey_name);
+        var request = store.put(survey, survey_name + '_to_edit');
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);

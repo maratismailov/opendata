@@ -80,25 +80,27 @@
     <!-- {#if dictionary} -->
     {#if template_list}
         {#each template_list as template}
-            <!-- <div on:click={get_initial_fields(template.survey_id)}> -->
-            <div>
+            {#if !template.includes("_to_edit")}
+                <!-- <div on:click={get_initial_fields(template.survey_id)}> -->
                 <div>
-                    {template}
-                    <div class="complete">
-                        {#if complete_surveys}
-                            {#each complete_surveys as survey}
-                                <div>
-                                    {survey}
-                                </div>
-                            {/each}
-                        {/if}
+                    <div>
+                        {template}
+                        <div class="complete">
+                            {#if complete_surveys}
+                                {#each complete_surveys as survey}
+                                    <div>
+                                        {survey}
+                                    </div>
+                                {/each}
+                            {/if}
+                        </div>
+                    </div>
+                    <div>
+                        <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_survey" on:click={add_survey(template)} />
                     </div>
                 </div>
-                <div>
-                    <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_survey" on:click={add_survey(template)} />
-                </div>
-            </div>
-            <hr />
+                <hr />
+            {/if}
         {/each}
     {/if}
     <!-- {/if} -->

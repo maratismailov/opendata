@@ -55,7 +55,6 @@
             const survey_name = template.survey_name;
             get_objects_to_save().then((result) => {
                 new_geom = result;
-                console.log("result", new_geom);
                 get_mbtiles(survey_name);
             });
 
@@ -83,7 +82,6 @@
     const save_survey = () => {
         is_object_missing = false;
         const object_code = template.survey_body.object_code;
-        console.log(object_code);
         template.survey_body.survey_body.forEach((elem) => {
             if (elem.id == object_code) {
                 object_code_value = elem.value;
@@ -168,8 +166,6 @@
             pmIgnore: true,
         }).addTo(map);
         // new_geom = new_objects;
-        console.log("oj2", new_geom);
-        console.log(template.objects);
         // console.log(new_geom);
         // new_geom.forEach((elem) => {
         //     objects_layer.addData(elem);
@@ -185,9 +181,10 @@
                 drawPolyline: false,
                 drawCircleMarker: false,
                 drawMarker: false,
-                dragMode: false,
                 rotateMode: false,
+                oneBlock: true,
             });
+            map.pm.Toolbar.changeControlOrder(["drawPolygon","editMode", "dragMode", "cutPolygon", "removalMode", ]);
         } else if (template.survey_body.geom_type === "point") {
             map.pm.addControls({
                 position: "topleft",
@@ -247,7 +244,7 @@
 
     const layer_click = (feature, layer) => {
         layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
-        console.log("ddd", feature);
+        // console.log("ddd", feature);
         layer_to_edit = null;
         layer_to_edit = layer;
         object_num = feature.properties.id;
@@ -271,20 +268,37 @@
     const enable_edit = (layer) => {
         let object_name_to_save = template.survey_name + "-" + object_num;
         // let objects_array = JSON.parse(localStorage.getItem("objects_to_save"));
-        layer.setStyle({ pmIgnore: false });
+        layer.setStyle({ pmIgnore: false, color: "orange" });
         layer.on("pm:update", (e) => {
-            console.log(template.survey_name + "-" + object_num);
+            template.objects.forEach((elem) => {
+                if (elem.properties.id == e.target.toGeoJSON().properties.id) {
+                    console.log(elem);
+                    elem = e.target.toGeoJSON();
+                    console.log(elem);
+                }
+            });
+            localStorage.setItem("current_template", JSON.stringify(template));
             // objects_array.push(e.target.toGeoJSON());
             put_to_save(e.target.toGeoJSON(), object_name_to_save);
         });
         layer.on("pm:cut", (e) => {
+            const new_template_objects = template.objects.map((elem) => {
+                if (elem.properties.id == e.target.toGeoJSON().properties.id) {
+                    const new_elem = e.layer.toGeoJSON();
+                    new_elem.properties = { id: e.target.toGeoJSON().properties.id };
+                    return new_elem;
+                } else return elem;
+            });
+            console.log(template);
+            template.objects = new_template_objects;
+            localStorage.setItem("current_template", JSON.stringify(template));
             put_to_save(e.layer.toGeoJSON(), object_name_to_save);
         });
         L.PM.reInitLayer(layer);
     };
 
     const disable_edit = (layer) => {
-        layer.setStyle({ pmIgnore: true });
+        layer.setStyle({ pmIgnore: true, color: "dodgerblue" });
         L.PM.reInitLayer(layer);
     };
 
@@ -296,10 +310,7 @@
         //     const point = map.latLngToLayerPoint(elem)
         //     return point
         // })
-        console.log(orig);
-        console.log(new_geom);
         // console.log(map.latLngToLayerPoint(new_geom))
-        console.log(orig === new_geom);
     };
 
     // var polygonCenter = layer.getBounds().getCenter();
@@ -358,7 +369,6 @@
         });
         parsed_data = parsed_data.concat(table_data);
         parsed_data = parsed_data.concat(template.initial_fields);
-        console.log(template.initial_fields);
         // console.log(parsed_data)
         const filtered = parsed_data.filter(function (el) {
             return el != null;
