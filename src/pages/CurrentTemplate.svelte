@@ -43,6 +43,7 @@
     let layer_name_to_edit = "";
     let objects_to_save = [];
     let new_geom = [];
+    let new_polygons_counter = 0
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
     // };
@@ -184,7 +185,7 @@
                 rotateMode: false,
                 oneBlock: true,
             });
-            map.pm.Toolbar.changeControlOrder(["drawPolygon","editMode", "dragMode", "cutPolygon", "removalMode", ]);
+            map.pm.Toolbar.changeControlOrder(["drawPolygon", "editMode", "dragMode", "cutPolygon", "removalMode"]);
         } else if (template.survey_body.geom_type === "point") {
             map.pm.addControls({
                 position: "topleft",
@@ -192,6 +193,22 @@
                 drawRectangle: false,
             });
         }
+
+        map.on("pm:create", (e) => {
+            console.log(e)
+            e.layer.feature.properties.id = -1
+            return 's'
+            const new_template_objects = template.objects.map((elem) => {
+                if (elem.properties.id == e.target.toGeoJSON().properties.id) {
+                    const new_elem = e.target.toGeoJSON();
+                    new_elem.properties = { id: e.target.toGeoJSON().properties.id };
+                    return new_elem;
+                } else return elem;
+            });
+            template.objects = new_template_objects;
+            localStorage.setItem("current_template", JSON.stringify(template));
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
+        });
 
         // L.geoJson(geoJsonData, {
         //     onEachFeature: function (feature, layer) {
@@ -243,8 +260,8 @@
     // }
 
     const layer_click = (feature, layer) => {
+        console.log("ddd", feature);
         layer.bindPopup(template.survey_body.object_code + " " + feature.properties.id);
-        // console.log("ddd", feature);
         layer_to_edit = null;
         layer_to_edit = layer;
         object_num = feature.properties.id;
@@ -254,10 +271,18 @@
         // map.fitBounds(e.target.getBounds());
     };
 
-    const put_to_save = (geojson, name) => {
+    const put_to_save = (geojson, name, db_name, template) => {
         var transaction = db.transaction(["objects_to_save"], "readwrite");
         var store = transaction.objectStore("objects_to_save");
         var request = store.put(geojson, name);
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {};
+
+        var transaction = db.transaction(["templates"], "readwrite");
+        var store = transaction.objectStore("templates");
+        var request = store.put(template, db_name + '_to_edit');
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
         };
@@ -270,16 +295,35 @@
         // let objects_array = JSON.parse(localStorage.getItem("objects_to_save"));
         layer.setStyle({ pmIgnore: false, color: "orange" });
         layer.on("pm:update", (e) => {
-            template.objects.forEach((elem) => {
+            const new_template_objects = template.objects.map((elem) => {
                 if (elem.properties.id == e.target.toGeoJSON().properties.id) {
-                    console.log(elem);
-                    elem = e.target.toGeoJSON();
-                    console.log(elem);
-                }
+                    const new_elem = e.target.toGeoJSON();
+                    new_elem.properties = { id: e.target.toGeoJSON().properties.id };
+                    return new_elem;
+                } else return elem;
             });
+            template.objects = new_template_objects;
             localStorage.setItem("current_template", JSON.stringify(template));
-            // objects_array.push(e.target.toGeoJSON());
-            put_to_save(e.target.toGeoJSON(), object_name_to_save);
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
+        });
+        layer.on("pm:drag", (e) => {
+            const new_template_objects = template.objects.map((elem) => {
+                if (elem.properties.id == e.target.toGeoJSON().properties.id) {
+                    const new_elem = e.target.toGeoJSON();
+                    new_elem.properties = { id: e.target.toGeoJSON().properties.id };
+                    return new_elem;
+                } else return elem;
+            });
+            template.objects = new_template_objects;
+            localStorage.setItem("current_template", JSON.stringify(template));
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
+        });
+        layer.on("pm:remove", (e) => {
+            console.log(e)
+            const new_template_objects = template.objects.filter((elem) => elem.properties.id !== e.layer.toGeoJSON().properties.id);
+            template.objects = new_template_objects;
+            localStorage.setItem("current_template", JSON.stringify(template));
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
         });
         layer.on("pm:cut", (e) => {
             const new_template_objects = template.objects.map((elem) => {
@@ -289,10 +333,10 @@
                     return new_elem;
                 } else return elem;
             });
-            console.log(template);
+            e.layer.feature.properties = { id: e.originalLayer.toGeoJSON().properties.id }
             template.objects = new_template_objects;
             localStorage.setItem("current_template", JSON.stringify(template));
-            put_to_save(e.layer.toGeoJSON(), object_name_to_save);
+            put_to_save(e.layer.toGeoJSON(), object_name_to_save,  template.survey_name, template);
         });
         L.PM.reInitLayer(layer);
     };

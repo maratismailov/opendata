@@ -61,7 +61,7 @@
         console.log(template_name);
         var transaction = db.transaction(["templates"], "readonly");
         var store = transaction.objectStore("templates");
-        var request = store.get(template_name.toString());
+        var request = store.get(template_name.toString() + '_to_edit');
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
