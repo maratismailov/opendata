@@ -61,7 +61,7 @@
         console.log(template_name);
         var transaction = db.transaction(["templates"], "readonly");
         var store = transaction.objectStore("templates");
-        var request = store.get(template_name.toString() + '_to_edit');
+        var request = store.get(template_name.toString() + "_to_edit");
 
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
@@ -71,6 +71,43 @@
             console.log(template);
             store_current_template.set(template);
             localStorage.setItem("current_template", JSON.stringify(template));
+        };
+        window.location.href = "/current";
+    };
+    const ask_to_recover = (template_name) => {
+        let is_to_recover = confirm("Это действие удалит все внесённые изменения по этому объекту. Продолжить?");
+        if (is_to_recover) recover_survey(template_name);
+    };
+    const recover_survey = (template_name) => {
+        console.log(template_name);
+        var transaction = db.transaction(["templates"], "readonly");
+        var store = transaction.objectStore("templates");
+        var request = store.get(template_name.toString());
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            let template = e.target.result;
+            console.log(template);
+            store_current_template.set(template);
+            localStorage.setItem("current_template", JSON.stringify(template));
+        };
+        var transaction2 = db.transaction(["objects_to_save"], "readwrite");
+        var store2 = transaction2.objectStore("objects_to_save");
+        var request2 = store2.getAllKeys();
+        request2.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request2.onsuccess = function (e) {
+            e.target.result.forEach((elem) => {
+                if (elem.includes(template_name)) {
+                    var request3 = store2.delete(elem);
+                    request3.onerror = function (e) {
+                        console.log("Error", e.target.error.name);
+                    };
+                    request3.onsuccess = function (e) {};
+                }
+            });
         };
         window.location.href = "/current";
     };
@@ -97,6 +134,7 @@
                     </div>
                     <div>
                         <input type="image" img src="assets/icons/plus.svg" class="plus" alt="add_survey" on:click={add_survey(template)} />
+                        <input type="image" img src="assets/icons/recover.svg" class="plus" alt="add_survey" on:click={ask_to_recover(template)} />
                     </div>
                 </div>
                 <hr />
