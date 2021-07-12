@@ -57,8 +57,42 @@
         };
     };
 
+    const open_complete_survey = (template_name, name) => {
+        var template
+        var transaction = db.transaction(["templates"], "readonly");
+        var store = transaction.objectStore("templates");
+        var request = store.get(template_name.toString() + "_to_edit");
+        console.log('name', template_name.toString())
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            template = e.target.result;
+            store_current_template.set(template);
+            localStorage.setItem("current_template", JSON.stringify(template));
+            console.log('template2', template)
+        };
+        console.log("key name", name);
+        var transaction = db.transaction(["complete_surveys"], "readonly");
+        var store = transaction.objectStore("complete_surveys");
+        var request = store.get(name);
+
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            console.log("res", e.target.result);
+            const body = e.target.result;
+            console.log('template', template)
+            template.survey_body.survey_body = body
+            store_current_template.set(template);
+            localStorage.setItem("current_template", JSON.stringify(template));
+        };
+        window.location.href = "/current";
+    };
+
     const add_survey = (template_name) => {
-        console.log(template_name);
         var transaction = db.transaction(["templates"], "readonly");
         var store = transaction.objectStore("templates");
         var request = store.get(template_name.toString() + "_to_edit");
@@ -125,9 +159,11 @@
                         <div class="complete">
                             {#if complete_surveys}
                                 {#each complete_surveys as survey}
-                                    <div>
-                                        {survey}
-                                    </div>
+                                    {#if survey.includes(template)}
+                                        <div on:click={open_complete_survey(template, survey)}>
+                                            {survey}
+                                        </div>
+                                    {/if}
                                 {/each}
                             {/if}
                         </div>

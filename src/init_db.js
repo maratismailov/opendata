@@ -37,5 +37,13 @@ export const init_db = async () => {
                 }
             );
         }
+        if (!db.objectStoreNames.contains("objects_to_delete")) {
+            var objects_to_save = db.createObjectStore(
+                "objects_to_delete",
+                {
+                    autoIncrement: true,
+                }
+            );
+        }
     };
 }
