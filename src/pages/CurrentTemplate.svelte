@@ -44,6 +44,8 @@
     let layer_name_to_edit = "";
     let objects_to_save = [];
     let new_geom = [];
+    let new_geometries = []
+    let geometries_to_delete = []
     let new_polygons_counter = 0;
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
@@ -151,7 +153,6 @@
 
     const get_new_objects = () => {
         var transaction = db.transaction(["objects_to_save"], "readonly");
-        console.log(template);
         var store = transaction.objectStore("objects_to_save");
         // var request = store.getAll();
         var request = store.getAllKeys();
@@ -160,8 +161,6 @@
         };
         request.onsuccess = function (e) {
             e.target.result.forEach((elem) => {
-                console.log(elem);
-                console.log(template.survey_name);
                 const id = parseInt(elem.replaceAll(template.survey_name + "-", ""));
                 if (id < 0) {
                     new_polygons_counter += 1;
@@ -320,7 +319,7 @@
     const put_to_delete = (name, db_name, template) => {
         var transaction = db.transaction(["objects_to_delete"], "readwrite");
         var store = transaction.objectStore("objects_to_delete");
-        var request = store.put('to_delete', name);
+        var request = store.put("to_delete", name);
         request.onerror = function (e) {
             console.log("Error", e.target.error.name);
         };
@@ -368,7 +367,7 @@
             const new_template_objects = template.objects.filter((elem) => elem.properties.id !== e.layer.toGeoJSON().properties.id);
             template.objects = new_template_objects;
             localStorage.setItem("current_template", JSON.stringify(template));
-            put_to_delete(object_name_to_save, template.survey_name, template)
+            put_to_delete(object_name_to_save, template.survey_name, template);
             // put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
         });
         layer.on("pm:cut", (e) => {
@@ -383,8 +382,8 @@
             template.objects = new_template_objects;
             localStorage.setItem("current_template", JSON.stringify(template));
             if (e.layer.toGeoJSON().type === "FeatureCollection" && e.layer.toGeoJSON().features.length === 0) {
-                console.log('empty', object_name_to_save);
-                put_to_delete(object_name_to_save, template.survey_name, template)
+                console.log("empty", object_name_to_save);
+                put_to_delete(object_name_to_save, template.survey_name, template);
             } else {
                 put_to_save(e.layer.toGeoJSON(), object_name_to_save, template.survey_name, template);
             }
@@ -437,8 +436,56 @@
         height = (window.innerHeight * 0.78).toString() + "px";
     };
 
+    const read_geometries_to_send = (survey_name) => {
+        new_geometries = []
+        geometries_to_delete = []
+        var transaction = db.transaction(["objects_to_save"], "readonly");
+        var store = transaction.objectStore("objects_to_save");
+        // var request = store.getAll();
+        var request = store.getAllKeys();
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            e.target.result.forEach((elem) => {
+                if (elem.includes(survey_name)) {
+                    console.log(elem);
+                    get_new_geometries(elem);
+                }
+            });
+        };
+        var transaction = db.transaction(["objects_to_delete"], "readonly");
+        var store = transaction.objectStore("objects_to_delete");
+        // var request = store.getAll();
+        var request = store.getAllKeys();
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            e.target.result.forEach((elem) => {
+                if (elem.includes(survey_name)) {
+                    geometries_to_delete.push(elem)
+                }
+            });
+        };
+    };
+
+    const get_new_geometries = (key) => {
+        var transaction = db.transaction(["objects_to_save"], "readonly");
+        var store = transaction.objectStore("objects_to_save");
+        var request = store.get(key);
+        request.onerror = function (e) {
+            console.log("Error", e.target.error.name);
+        };
+        request.onsuccess = function (e) {
+            new_geometries.push(e.target.result)
+        };
+    };
+
     const parse_tables = () => {
         let table_data = [];
+        // console.log(template.survey_name)
+        read_geometries_to_send(template.survey_name);
         let parsed_data = template.survey_body.survey_body.map((elem) => {
             if (elem.type !== "table") {
                 return elem;
@@ -478,7 +525,10 @@
             data.val = elem.value;
             return data;
         });
-        send_data(data_to_send);
+        data_to_send.push({"new_geometries": new_geometries})
+        data_to_send.push({"geometries_to_delete": geometries_to_delete})
+        console.log(data_to_send)
+        // send_data(data_to_send);
     };
 
     const send_data = async (data) => {
@@ -513,12 +563,12 @@
         {/if}
         <!-- {/if} -->
         <button on:click={compare_geom}>test</button>
-        <!-- <button on:click={parse_tables}>test to send</button> -->
-        <button
+        <button on:click={parse_tables}>test to send</button>
+        <!-- <button
             on:click={() => {
                 console.log(new_geom);
             }}>test to send</button
-        >
+        > -->
         <div class="parsed">
             <Parsed {template} />
             <button on:click={save_survey}>save</button>
