@@ -44,8 +44,8 @@
     let layer_name_to_edit = "";
     let objects_to_save = [];
     let new_geom = [];
-    let new_geometries = []
-    let geometries_to_delete = []
+    let new_geometries = [];
+    let geometries_to_delete = [];
     let new_polygons_counter = 0;
     // const geomanClickOnLayer = (a, b) => {
     //     console.log("dd");
@@ -53,10 +53,10 @@
 
     onMount(() => {
         init_db();
-
         var db_mobilesurvey = indexedDB.open("db_mobilesurvey", 1);
         db_mobilesurvey.onsuccess = function (e) {
             db = e.target.result;
+            read_geometries_to_send(template.survey_name);
             const survey_name = template.survey_name;
             get_new_objects();
             get_objects_to_save().then((result) => {
@@ -437,8 +437,8 @@
     };
 
     const read_geometries_to_send = (survey_name) => {
-        new_geometries = []
-        geometries_to_delete = []
+        new_geometries = [];
+        geometries_to_delete = [];
         var transaction = db.transaction(["objects_to_save"], "readonly");
         var store = transaction.objectStore("objects_to_save");
         // var request = store.getAll();
@@ -464,7 +464,7 @@
         request.onsuccess = function (e) {
             e.target.result.forEach((elem) => {
                 if (elem.includes(survey_name)) {
-                    geometries_to_delete.push(elem)
+                    geometries_to_delete.push(elem);
                 }
             });
         };
@@ -478,14 +478,14 @@
             console.log("Error", e.target.error.name);
         };
         request.onsuccess = function (e) {
-            new_geometries.push(e.target.result)
+            new_geometries.push(e.target.result);
         };
     };
 
     const parse_tables = () => {
         let table_data = [];
         // console.log(template.survey_name)
-        read_geometries_to_send(template.survey_name);
+        // read_geometries_to_send(template.survey_name);
         let parsed_data = template.survey_body.survey_body.map((elem) => {
             if (elem.type !== "table") {
                 return elem;
@@ -525,14 +525,23 @@
             data.val = elem.value;
             return data;
         });
-        data_to_send.push({"new_geometries": new_geometries})
-        data_to_send.push({"geometries_to_delete": geometries_to_delete})
-        console.log(data_to_send)
-        // send_data(data_to_send);
+        console.log("1", new_geometries);
+        new_geometries.forEach((elem) => {
+            console.log("elem", elem);
+            console.log("string", JSON.stringify(elem));
+        });
+        console.log("2", JSON.stringify(new_geometries));
+        console.log("1", geometries_to_delete);
+        console.log("2", JSON.stringify(geometries_to_delete));
+        data_to_send.push({ id: "new_geometries", val: JSON.stringify(new_geometries) });
+        data_to_send.push({ id: "geometries_to_delete", val: JSON.stringify(geometries_to_delete) });
+        send_data(data_to_send);
     };
 
     const send_data = async (data) => {
+        console.log("data_to_send", data);
         let string = JSON.stringify(data);
+        console.log("string", string);
         string = string.replace(/\+/gi, "%2B");
         const post = await fetch(server_url + "/send_standestimation_data?data=" + string).then((response) => response.json());
     };
@@ -564,6 +573,8 @@
         <!-- {/if} -->
         <button on:click={compare_geom}>test</button>
         <button on:click={parse_tables}>test to send</button>
+        <button on:click={console.log(JSON.stringify(new_geometries))}>stringify</button>
+
         <!-- <button
             on:click={() => {
                 console.log(new_geom);

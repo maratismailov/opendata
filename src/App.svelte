@@ -15,8 +15,8 @@
 	if (!is_production) {
 		console.log("Developement Mode");
 		if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
-			// server_url = "http://0.0.0.0:8000";
-			server_url = "https://dev.forest.caiag.kg/survey-editor";
+			server_url = "http://0.0.0.0:8000";
+			// server_url = "https://dev.forest.caiag.kg/survey-editor";
 		} else if (location.hostname == "192.168.20.35") {
 			server_url = "http://192.168.20.35:8000";
 		}
